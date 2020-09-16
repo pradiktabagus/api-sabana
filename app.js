@@ -7,15 +7,17 @@ var bodyParser = require("body-parser");
 var InitiateMongoServer = require("./config/db");
 
 var indexRouter = require("./routes/index");
-var usersRouter = require("./routes/users");
+var userRouter = require("./routes/users");
 
 //initiate mongoo server
 InitiateMongoServer();
 
 var app = express();
 
+//PORT
+
 //middleware
-app.use(bodyParser.json);
+app.use(bodyParser.json());
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -28,7 +30,12 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
-app.use("/users", usersRouter);
+/**
+ * @Router Middleware
+ * @Router - /user/*
+ * @Method - *
+ */
+app.use("/auth", userRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
