@@ -35,7 +35,7 @@ app.use("/", indexRouter);
  * @Router - /user/*
  * @Method - *
  */
-app.use("/auth", userRouter);
+app.use("/api/auth", userRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
