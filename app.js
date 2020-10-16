@@ -39,9 +39,18 @@ app.use("/api/auth", userRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
+<<<<<<< HEAD
   var err = new Error("Not Found");
   err.status = 404;
   next(err);
+=======
+  res.status(404)
+  res.send({
+    status: 404,
+    message: "Not Found"
+  })
+  // next(createError(404));
+>>>>>>> 5d2127a651bd609551cab58a4b5c0cf236836e2e
 });
 
 // error handler
