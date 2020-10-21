@@ -4,6 +4,7 @@ var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 var bodyParser = require("body-parser");
+var cors = require('cors')
 var InitiateMongoServer = require("./config/db");
 
 var indexRouter = require("./routes/index");
@@ -14,10 +15,12 @@ InitiateMongoServer();
 
 var app = express();
 
-//PORT
+//cors
+app.use(cors())
 
 //middleware
 app.use(bodyParser.json());
+app.use(session({ secret: 'sabana', cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false  }));
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -44,7 +47,7 @@ app.use(function (req, res, next) {
     status: 404,
     message: "Not Found",
   });
-  // next(createError(404));
+  next(createError(404));
 });
 
 // error handler
@@ -53,9 +56,13 @@ app.use(function (err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error = req.app.get("env") === "development" ? err : {};
 
+  console.error(err.stack)
   // render the error page
   res.status(err.status || 500);
-  res.render("error");
+  res.json({'errors': {
+    message: err.message,
+    error: err
+  }})
 });
 
 module.exports = app;
