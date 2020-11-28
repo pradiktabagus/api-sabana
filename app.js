@@ -20,7 +20,7 @@ app.use(cors())
 
 //middleware
 app.use(bodyParser.json());
-app.use(session({ secret: 'sabana', cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false  }));
+// app.use(session({ secret: 'sabana', cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false  }));
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));

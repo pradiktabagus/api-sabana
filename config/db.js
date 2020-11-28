@@ -5,7 +5,8 @@ const InitiateMongoServer = async () => {
   try {
     await mongoose.connect(MONGOOURI, {
       useNewUrlParser: true,
-      useUnifiedTopology: true
+      useUnifiedTopology: true,
+      useCreateIndex: true
     });
     console.log("Connected to DB !! sabana");
   } catch (e) {
