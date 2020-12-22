@@ -1,10 +1,12 @@
+const mongoose = require("mongoose");
 const express = require("express");
 const { check, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
-const auth = require("../middleware/auth");
-const User = require("../model/user");
+const auth = require("../../middleware/auth");
+const User = require("../../model/user");
+// const User = mongoose.model("User");
 
 /**
  * @method - POST
@@ -21,7 +23,7 @@ router.post(
       min: 6,
     }),
   ],
-  async (req, res) => {
+  async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -40,41 +42,22 @@ router.post(
         });
       }
 
-      user = new User({
-        username,
-        email,
-        password,
-      });
+      user = new User();
+      user.username = username;
+      user.email = email;
+      user.setPassword(password);
 
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(password, salt);
-
-      await user.save();
-
-      const payload = {
-        user: {
-          id: user.id,
-        },
-      };
-
-      jwt.sign(
-        payload,
-        "randomString",
-        {
-          expiresIn: 10000,
-        },
-        (err, token) => {
-          if (err) throw err;
-          res.status(200).json({
-            id: user.id,
-            username: user.username,
-            email: user,
-            email,
+      user
+        .save()
+        .then(function () {
+          return res.json({
+            status: 200,
+            message: "success",
+            data: user.toAuthJSON(),
           });
-        }
-      );
+        })
+        .catch(next);
     } catch (err) {
-      console.log(err.message);
       res.status(500).send("Error in Saving");
     }
   }

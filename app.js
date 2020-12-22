@@ -4,11 +4,12 @@ var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 var bodyParser = require("body-parser");
-var cors = require('cors')
+var cors = require("cors");
 var InitiateMongoServer = require("./config/db");
 
 var indexRouter = require("./routes/index");
-var userRouter = require("./routes/users");
+var userRouter = require("./routes/api/users");
+const { Error } = require("mongoose");
 
 //initiate mongoo server
 InitiateMongoServer();
@@ -16,7 +17,31 @@ InitiateMongoServer();
 var app = express();
 
 //cors
-app.use(cors())
+
+// Add headers
+app.use(function (req, res, next) {
+  // Website you wish to allow to connect
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:8081");
+
+  // Request methods you wish to allow
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+  );
+
+  // Request headers you wish to allow
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "X-Requested-With,content-type"
+  );
+
+  // Set to true if you need the website to include cookies in the requests sent
+  // to the API (e.g. in case you use sessions)
+  res.setHeader("Access-Control-Allow-Credentials", true);
+
+  // Pass to next layer of middleware
+  next();
+});
 
 //middleware
 app.use(bodyParser.json());
@@ -42,11 +67,6 @@ app.use("/api/auth", userRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-  res.status(404);
-  res.send({
-    status: 404,
-    message: "Not Found",
-  });
   next(createError(404));
 });
 
@@ -56,13 +76,15 @@ app.use(function (err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error = req.app.get("env") === "development" ? err : {};
 
-  console.error(err.stack)
+  console.error(err.stack);
   // render the error page
   res.status(err.status || 500);
-  res.json({'errors': {
-    message: err.message,
-    error: err
-  }})
+  res.json({
+    errors: {
+      message: err.message,
+      error: err,
+    },
+  });
 });
 
 module.exports = app;
