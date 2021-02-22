@@ -29,7 +29,7 @@ var UserSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-UserSchema.plugin(uniqueValidator, { message: "is already taken" });
+// UserSchema.plugin(uniqueValidator, { message: "is already taken" });
 
 UserSchema.methods.validPassword = function (password) {
   var hash = crypto
@@ -64,9 +64,15 @@ UserSchema.methods.toAuthJSON = function () {
   return {
     username: this.username,
     email: this.email,
-    token: this.generateJWT(),
     bio: this.bio,
     image: this.image,
+    token: this.generateJWT(),
+  };
+};
+
+UserSchema.methods.errorAuthJSON = function (error) {
+  return {
+    message: [error],
   };
 };
 

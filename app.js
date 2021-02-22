@@ -24,7 +24,8 @@ app.use(
     allowedHeaders: "x-requested-with, content-type",
   })
 );
-//PORT
+
+require("./config/passport");
 
 //middleware
 app.use(bodyParser.json());
@@ -59,13 +60,12 @@ app.use(function (err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error = req.app.get("env") === "development" ? err : {};
 
-  console.error(err.stack);
   // render the error page
   res.status(err.status || 500);
   res.json({
+    status: err.status,
     errors: {
       message: err.message,
-      error: err,
     },
   });
 });

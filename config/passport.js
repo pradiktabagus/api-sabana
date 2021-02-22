@@ -1,7 +1,7 @@
 var passport = require("passport");
 var LocalStrategy = require("passport-local").Strategy;
 var mongoose = require("mongoose");
-var User = mongoose.model("User");
+var User = require("../model/user");
 
 passport.use(
   new LocalStrategy(
@@ -17,7 +17,6 @@ passport.use(
               errors: { "email or password": "is invalid" },
             });
           }
-
           return done(null, user);
         })
         .catch(done);

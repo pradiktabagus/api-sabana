@@ -3,10 +3,10 @@ const express = require("express");
 const { check, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const passport = require("passport");
 const router = express.Router();
 const auth = require("../../middleware/auth");
 const User = require("../../model/user");
-// const User = mongoose.model("User");
 
 /**
  * @method - POST
@@ -17,32 +17,61 @@ const User = require("../../model/user");
 router.post(
   "/signup",
   [
-    check("username", "Please Enter a Valid Username").not().isEmpty(),
+    check("username", "Username cannot be empty").not().isEmpty(),
+    check("email", "Email cannot be empty").not().isEmpty(),
     check("email", "Please enter a valid email").isEmail(),
-    check("password", "Please enter a valid password").isLength({
+    check("password", "Minimum 6 Character for your password").isLength({
       min: 6,
     }),
+    check("password", "Password cannot be empty").not().isEmpty(),
   ],
   async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        errors: errors.array(),
+        status: 400,
+        error: errors.array().map((err) => ({
+          param: err.param,
+          value: err.value,
+          message: err.msg,
+        })),
       });
     }
 
     const { username, email, password } = req.body;
     try {
-      let user = await User.findOne({
+      const user = new User();
+      const validateExist = [];
+      const EmailIsAlready = await User.findOne({
         email,
       });
-      if (user) {
-        return res.status(400).json({
-          msg: "User Already Exists",
+      const UsernameIsAlready = await User.findOne({
+        username,
+      });
+
+      if (EmailIsAlready) {
+        validateExist.push({
+          param: "Email",
+          value: email,
+          message: `${email} is already exist`,
         });
       }
 
-      user = new User();
+      if (UsernameIsAlready) {
+        validateExist.push({
+          param: "Username",
+          value: username,
+          message: `${username} is already exist`,
+        });
+      }
+
+      if (validateExist.length > 0) {
+        return res.status(400).json({
+          status: 400,
+          error: validateExist,
+        });
+      }
+
       user.username = username;
       user.email = email;
       user.setPassword(password);
@@ -52,13 +81,15 @@ router.post(
         .then(function () {
           return res.json({
             status: 200,
-            message: "success",
             data: user.toAuthJSON(),
           });
         })
         .catch(next);
     } catch (err) {
-      res.status(500).send("Error in Saving");
+      res.status(500).json({
+        status: 500,
+        error: "Internal Server Error",
+      });
     }
   }
 );
@@ -73,54 +104,48 @@ router.post(
   "/login",
   [
     check("email", "Please enter valid email").isEmail(),
+    check("email", "Email cannot be blank").not().isEmpty(),
+    check("password", "password cannot be blank").not().isEmpty(),
     check("password", "Please enter valid password").isLength({
       min: 6,
     }),
   ],
-  async (req, res) => {
-    const error = validationResult(req);
-    if (!error.isEmpty()) {
+  async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
       return res.status(400).json({
-        errors: error.array(),
+        status: 400,
+        error: errors.array().map((err) => ({
+          param: err.param,
+          value: err.value,
+          message: err.msg,
+        })),
       });
     }
 
     const { email, password } = req.body;
     try {
-      let user = await User.findOne({
-        email,
-      });
-      if (!user)
-        return res.status(400).json({
-          message: "User not exist",
-        });
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch)
-        return res.status(400).json({
-          message: "Incorect Password",
-        });
-      const payload = {
-        user: {
-          id: user.id,
-        },
-      };
-      jwt.sign(
-        payload,
-        "randomString",
-        {
-          expiresIn: 3600,
-        },
-        (err, token) => {
-          if (err) throw err;
-          res.status(200).json({
-            token,
-          });
+      passport.authenticate(
+        "local",
+        { session: false },
+        function (err, user, info) {
+          if (err) {
+            return next(err);
+          }
+          if (user) {
+            user.token = user.generateJWT();
+            return res.json({
+              user: user.toAuthJSON(),
+            });
+          } else {
+            return res.status(422).json(info);
+          }
         }
       );
     } catch (error) {
-      console.error(error);
       res.status(500).json({
-        message: "Internal Server Error",
+        status: 500,
+        error: "Internal Server Error",
       });
     }
   }
