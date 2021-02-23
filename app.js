@@ -5,7 +5,11 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 var bodyParser = require("body-parser");
 var cors = require("cors");
+var mongoose = require("mongoose");
+var MongoStore = require("connect-mongo");
 var InitiateMongoServer = require("./config/db");
+var passport = require("./config/passport");
+var session = require("express-session");
 
 var indexRouter = require("./routes/index");
 var userRouter = require("./routes/api/users");
@@ -25,8 +29,20 @@ app.use(
   })
 );
 
-require("./config/passport");
+//Express session
 
+// app.use(
+//   session({
+//     secret: "secret",
+//     resave: false,
+//     saveUninitialized: true,
+//     store: new MongoStore({ mongooseConnection: mongoose.connection }),
+//   })
+// );
+
+//passpart middleware
+app.use(passport.initialize());
+app.use(passport.session());
 //middleware
 app.use(bodyParser.json());
 // app.use(session({ secret: 'sabana', cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false  }));

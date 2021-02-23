@@ -1,8 +1,6 @@
 const mongoose = require("mongoose");
 const express = require("express");
 const { check, validationResult } = require("express-validator");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const passport = require("passport");
 const router = express.Router();
 const auth = require("../../middleware/auth");
@@ -125,23 +123,20 @@ router.post(
 
     const { email, password } = req.body;
     try {
-      passport.authenticate(
-        "local",
-        { session: false },
-        function (err, user, info) {
-          if (err) {
-            return next(err);
-          }
-          if (user) {
-            user.token = user.generateJWT();
-            return res.json({
-              user: user.toAuthJSON(),
-            });
-          } else {
-            return res.status(422).json(info);
-          }
+      passport.authenticate("local", function (err, user, info) {
+        if (err) {
+          return res.status(400).json({ errors: err });
         }
-      );
+        if (!user) {
+          return res.status(400).json({ errors: "No user found" });
+        }
+        req.logIn(user, function (err) {
+          if (err) {
+            return res.status(400).json({ errors: err });
+          }
+          return res.status(200).json({ success: "logged" });
+        });
+      })(req, res, next);
     } catch (error) {
       res.status(500).json({
         status: 500,
