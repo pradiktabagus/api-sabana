@@ -3,12 +3,8 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
-var bodyParser = require("body-parser");
 var cors = require("cors");
-var mongoose = require("mongoose");
-var MongoStore = require("connect-mongo");
 var InitiateMongoServer = require("./config/db");
-var passport = require("./config/passport");
 var session = require("express-session");
 
 var indexRouter = require("./routes/index");
@@ -17,7 +13,6 @@ const { Error } = require("mongoose");
 
 //initiate mongoo server
 InitiateMongoServer();
-
 var app = express();
 
 //cors
@@ -28,24 +23,15 @@ app.use(
     allowedHeaders: "x-requested-with, content-type",
   })
 );
-
-//Express session
-
-// app.use(
-//   session({
-//     secret: "secret",
-//     resave: false,
-//     saveUninitialized: true,
-//     store: new MongoStore({ mongooseConnection: mongoose.connection }),
-//   })
-// );
-
-//passpart middleware
-app.use(passport.initialize());
-app.use(passport.session());
-//middleware
-app.use(bodyParser.json());
-// app.use(session({ secret: 'sabana', cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false  }));
+//session
+app.use(
+  session({
+    secret: "sabana",
+    cookie: { maxAge: 60000 },
+    resave: false,
+    saveUninitialized: false,
+  })
+);
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -64,6 +50,9 @@ app.use("/", indexRouter);
  * @Method - *
  */
 app.use("/api/auth", userRouter);
+
+require("./model/user");
+require("./config/passport");
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
