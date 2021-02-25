@@ -1,9 +1,5 @@
-const mongoose = require("mongoose");
 const express = require("express");
 const { check, validationResult } = require("express-validator");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const passport = require("passport");
 const router = express.Router();
 const auth = require("../../middleware/auth");
 const User = require("../../model/user");
@@ -66,8 +62,8 @@ router.post(
       }
 
       if (validateExist.length > 0) {
-        return res.status(400).json({
-          status: 400,
+        return res.status(409).json({
+          status: 409,
           error: validateExist,
         });
       }
@@ -101,10 +97,9 @@ router.post(
  */
 
 router.post(
-  "/login",
+  "/signin",
   [
-    check("email", "Please enter valid email").isEmail(),
-    check("email", "Email cannot be blank").not().isEmpty(),
+    check("username", "Email cannot be blank").not().isEmpty(),
     check("password", "password cannot be blank").not().isEmpty(),
     check("password", "Please enter valid password").isLength({
       min: 6,
@@ -123,26 +118,26 @@ router.post(
       });
     }
 
-    const { email, password } = req.body;
     try {
-      passport.authenticate(
-        "local",
-        { session: false },
-        function (err, user, info) {
-          if (err) {
-            return next(err);
-          }
-          if (user) {
-            user.token = user.generateJWT();
-            return res.json({
-              user: user.toAuthJSON(),
-            });
-          } else {
-            return res.status(422).json(info);
-          }
-        }
-      );
-    } catch (error) {
+      const { password, username } = req.body;
+      const user = await User.findOne({ username });
+      if (!user) {
+        return res.status(400).json({
+          status: 400,
+          error: `User ${username} Not Found`,
+        });
+      }
+      if (!user || !user.validPassword(password)) {
+        return res.status(400).json({
+          status: 400,
+          error: `Password is Invalid`,
+        });
+      }
+      return res.json({
+        status: 200,
+        data: user.toAuthJSON(),
+      });
+    } catch (err) {
       res.status(500).json({
         status: 500,
         error: "Internal Server Error",
@@ -161,9 +156,9 @@ router.get("/me", auth, async (req, res) => {
   try {
     // request.user is getting fetched from Middleware after token authentication
     const user = await User.findById(req.user.id);
-    res.json({
-      username: user.username,
-      email: user.email,
+    res.status(200).json({
+      status: 200,
+      data: user.toProfileJSONFor(),
     });
   } catch (e) {
     res.send({ message: "Error in Fetching user" });

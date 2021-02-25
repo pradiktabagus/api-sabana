@@ -29,7 +29,7 @@ var UserSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// UserSchema.plugin(uniqueValidator, { message: "is already taken" });
+UserSchema.plugin(uniqueValidator, { message: "is already taken" });
 
 UserSchema.methods.validPassword = function (password) {
   var hash = crypto
@@ -60,6 +60,9 @@ UserSchema.methods.generateJWT = function () {
   );
 };
 
+/**
+ * @description return json untuk register dan login
+ */
 UserSchema.methods.toAuthJSON = function () {
   return {
     username: this.username,
@@ -76,8 +79,12 @@ UserSchema.methods.errorAuthJSON = function (error) {
   };
 };
 
+/**
+ * @description return json untuk profile user
+ */
 UserSchema.methods.toProfileJSONFor = function (user) {
   return {
+    email: this.email,
     username: this.username,
     bio: this.bio,
     image:
