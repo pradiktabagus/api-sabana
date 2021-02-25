@@ -62,8 +62,8 @@ router.post(
       }
 
       if (validateExist.length > 0) {
-        return res.status(400).json({
-          status: 400,
+        return res.status(409).json({
+          status: 409,
           error: validateExist,
         });
       }
@@ -156,9 +156,9 @@ router.get("/me", auth, async (req, res) => {
   try {
     // request.user is getting fetched from Middleware after token authentication
     const user = await User.findById(req.user.id);
-    res.json({
-      username: user.username,
-      email: user.email,
+    res.status(200).json({
+      status: 200,
+      data: user.toProfileJSONFor(),
     });
   } catch (e) {
     res.send({ message: "Error in Fetching user" });
