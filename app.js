@@ -16,13 +16,16 @@ InitiateMongoServer();
 var app = express();
 
 //cors
+var allowedOrigins = ["http://localhost:4000", "https://www.nanali.co"];
 app.use(
   cors({
-    origin: "*",
+    origin: allowedOrigins,
     methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
-    allowedHeaders: "x-requested-with, content-type",
+    allowedHeaders: "Content-Type, token",
+    optionsSuccessStatus: 200,
   })
 );
+
 //session
 app.use(
   session({
