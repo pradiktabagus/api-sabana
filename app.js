@@ -9,6 +9,7 @@ var session = require("express-session");
 
 var indexRouter = require("./routes/index");
 var userRouter = require("./routes/api/users");
+var profileRouter = require("./routes/api/profile");
 const { Error } = require("mongoose");
 
 //initiate mongoo server
@@ -50,7 +51,7 @@ app.use("/", indexRouter);
  * @Method - *
  */
 app.use("/api/auth", userRouter);
-
+app.use("/api/profile", profileRouter);
 require("./model/user");
 require("./config/passport");
 
