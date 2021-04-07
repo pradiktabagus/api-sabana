@@ -25,6 +25,8 @@ var UserSchema = new mongoose.Schema(
     image: String,
     hash: String,
     salt: String,
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    follower: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );
@@ -48,7 +50,7 @@ UserSchema.methods.setPassword = function (password) {
 UserSchema.methods.generateJWT = function () {
   var today = new Date();
   var exp = new Date(today);
-  exp.setDate(today.getDate() + 60);
+  exp.setDate(today.getDate() + 7);
 
   return jwt.sign(
     {
@@ -89,8 +91,27 @@ UserSchema.methods.toProfileJSONFor = function (user) {
     bio: this.bio,
     image:
       this.image || "https://static.productionready.io/images/smiley-cyrus.jpg",
+    // isFollow: user ? user.isFollowing(this._id) : false,
+    following: this.following.length,
+    follower: this.follower.length,
   };
 };
 
+UserSchema.methods.follow = function (id) {
+  if (this.following.indexOf(id) === -1) {
+    this.following.push(id);
+  }
+  return this.save();
+};
+
+UserSchema.methods.unfollow = function (id) {
+  this.following.remove(id);
+  return this.save();
+};
+
+UserSchema.methods.isFollowing = function (id) {
+  return this.following.some(function (followId) {
+    return followId.toString() === id.toString();
+  });
+};
 module.exports = mongoose.model("User", UserSchema);
-// mongoose.model("User", UserSchema);
