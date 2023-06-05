@@ -12,7 +12,6 @@ passport.use(
     (username, password, done) => {
       User.findOne({ username })
         .then((user) => {
-          console.log(user);
           if (!user || !user.validatePassword(password)) {
             return done(null, false, {
               errors: { "email or password": "is invalid" },
