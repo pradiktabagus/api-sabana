@@ -4,7 +4,8 @@
   "private": true,
   "main": "app.js",
   "scripts": {
-    "start": "nodemon ./bin/www"
+    "start": "nodemon ./bin/www",
+    "tsc": "tsc"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -32,5 +33,13 @@
   },
   "engines": {
     "node": "12.18.4"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/node": "^20.2.5",
+    "@typescript-eslint/parser": "^5.59.8",
+    "ts-node": "^10.9.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.1.3"
   }
 }
